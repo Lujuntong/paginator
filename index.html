@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>新闻列表</title>
+    <link rel="stylesheet" href="style.css">
+
+
+    <link rel="stylesheet" href="bootstrap-3.3.7-dist/css/bootstrap.css">
+    <script src="jquery-3.4.1.min.js"></script>
+    <script src="jqPaginator.js"></script>
+    <script src="bootstrap-3.3.7-dist/js/bootstrap.js"></script>
+</head>
+
+<body>
+    <div class="banner">
+        <img src="img/corporate.jpg" alt="">
+    </div>
+    <div class="news">
+        <ul id="ul"></ul>
+    </div>
+    <ul class="pagination" id="pagination1">
+
+    </ul>
+    <script>
+        $(function () {
+            // $.ajax({
+            //     url: 'list.json',
+            //     dataType: "json",
+            //     success: function (data) {
+            //         // var _data=p
+            //         console.log(data.list);
+            //         var _data = data.list
+            //         $.each(_data, function (i) {
+            //             $(".news ul").append(`
+            //             <li>
+            //                 <a href='#'>
+            //                     <div class='pic'>
+            //                         <img src='${_data[i].Image}'>    
+            //                     </div>
+            //                     <div class='text'>
+            //                         <h1>${_data[i].title}</h1>   
+            //                         <p>${_data[i].describe}</p> 
+            //                         <div class='text_bottom'>
+            //                             <span>${_data[i].time}</span>  
+            //                             <span>${_data[i].author}</span>    
+            //                         </div>
+            //                     </div>
+            //                 </a>
+            //             </li>
+
+            //             `)
+            //         })
+
+
+            //     }
+            // })
+        })
+        var url = "list.json";
+        var sendData = { "pageNum": 1, "pageSize": 3 };
+        $(function () {
+            // 当前页：1，第一次发送
+            sendRequest(1, true)
+        });
+        function sendRequest(num, isfirst) {
+            sendData.pageNum = num;
+            $.ajax({
+                type: 'post',
+                url: "http://10.10.60.89:8080/ggshow/newstrends",
+                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                dataType: "json",
+                async:true,
+                data: {
+                    page: num,   //当前页数
+                    size: sendData.pageSize  //每页条数
+                },
+                // processData: false,  //默认是true，是否转换为查询字符串
+                success: function (result, status) {
+                    var content = JSON.parse(JSON.stringify(result));
+                    if (content.code == 200) {
+                        var oUl = document.getElementById("ul")
+                        oUl.innerHTML = ''
+                        for (var index in content.data) {
+                            var account = content.data[index];
+                            oUl.innerHTML += `
+                            <li>
+                            <a href='#'>
+                                <div class='pic'>
+                                    <img src='${account.picture}'>    
+                                </div>
+                                <div class='text'>
+                                    <h1>${account.title}</h1>   
+                                    <div class="text_p">${account.text}</div>
+                                    <div class='text_bottom'>
+                                        <span>${account.updateTime}</span>  
+                                        <span>${account.userName}</span>    
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                            `
+                        }
+                        if (isfirst) {
+                        $("#pagination1").jqPaginator({
+                            totalPages: result.pages, //设置分页的总页数
+                            visiblePages: 10, //设置最多显示的页码数
+                            currentPage: num, //设置当前的页码
+                            first: '<li class="page-item"><a class="page-link">首页</a></li>',
+                            prev: '<li class="page-item"><a class="page-link">上一页</a></li>',
+                            next: '<li class="page-item"><a class="page-link">下一页</a></li>',
+                            last: '<li class="page-item"><a class="page-link">末页</a></li>',
+                            page: '<li class="page-item"><a class="page-link">{{page}}</a></li>',
+                            onPageChange: function (num) {
+                                sendRequest(num, false)
+                            }
+                        })
+                    }
+                    }
+                },
+                error: function (result) {
+                    alert('请求数据失败')
+                }
+            })
+        }
+    </script>
+</body>
+
+</html>
